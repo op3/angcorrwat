@@ -1,3 +1,19 @@
+# angdist.py
+# Copyright © Oliver Papst
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 """Calculate angular distributions"""
 
 from functools import lru_cache
@@ -120,24 +136,29 @@ def isst(nu, q, l, i_n, i, sigma):
         return 0
 
 
-"""
 def _W(theta, phi,
-       i_i, sigma, l1, sigmap, lp1, delta1,
-       [i2, l2, lp2, delta2],
-       i_f):
-"""
-def _W(theta, phi,
-       i_i, i, i_f, sigma, l1, sigmap, lp1, delta1, l2, lp2, delta2,
-       iintn=None, lint=None, lintp=None, deltaint=None):
+       i1, sigma, l1, sigmap, lp1, delta1,
+       intermediate_states, i_f):
     """
     Spin sequence is: i_i (sigma l1, sigmap lp1) i (l2, lp2) iintn (lint, lintp) i_f
+    
+    [i2, l2, lp2, delta2],
     """
-    if iintn is not None:
-        raise NotImplementedError()
     nu = Symbol('nu', integer=True)
+
+    # FIXME: Not yet tested
+    middle = 1
+    prev = [i1, l1, lp1, delta1]
+    for istate in intermediate_states[:-1]:
+        i, l, lp, delta = istate
+        middle *= u(2 * nu, l, lp, i, prev[0], delta)
+        prev = istate
+
+    i2, l2, lp2, delta2 = intermediate_states[-1]
     return summation(
-        bp(2 * nu, theta, phi, sigma, l1, sigmap, lp1, i_i, i, delta1) *
-        a(l2, lp2, i_f, i, delta2, 2 * nu), (nu, 0, 2))
+        bp(2 * nu, theta, phi, sigma, l1, sigmap, lp1, i1,
+           intermediate_states[0][0], delta1) * middle *
+        a(l2, lp2, i_f, i2, delta2, 2 * nu), (nu, 0, 2))
 
 
 def W(*args, **kwargs):
