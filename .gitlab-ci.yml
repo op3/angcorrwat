@@ -1,0 +1,6 @@
+image: python:latest
+
+test:
+  coverage: '/TOTAL.+?(\d+)%\s*$/'
+  script:
+  - python setup.py test
