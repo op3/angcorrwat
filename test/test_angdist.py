@@ -20,7 +20,7 @@
 import pytest
 
 from sympy import Symbol, cos, sin
-from angcorrwat.angdist import W
+from angcorrwat import W
 
 theta = Symbol('theta')
 phi = Symbol('phi')
