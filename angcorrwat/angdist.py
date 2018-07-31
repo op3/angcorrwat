@@ -1,39 +1,49 @@
-# angdist.py
-# Copyright © Oliver Papst
+#  SPDX-License-Identifier: GPL-3.0+
 #
-# This program is free software: you can redistribute it and/or modify
+# Copyright © 2017-2018 O. Papst.
+#
+# This file is part of angcorrwat.
+#
+# angcorrwat is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
+# angcorrwat is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# along with pyangdist.  If not, see <http://www.gnu.org/licenses/>.
 
 """Calculate angular distributions"""
 
 from functools import lru_cache
 
+import inspect
+
 from sympy import sqrt, factorial, cos, Symbol, summation, Piecewise, pi, prod
 from sympy.physics.quantum.cg import CG, Wigner3j, Wigner6j, Wigner9j
 from sympy.functions import legendre, assoc_legendre
 
-deg = pi/180.
 
-
-def legenp(n, m, x):
-    return Piecewise((0, m > n), (assoc_legendre(n, m, x), True))
+def wrap_function(function):
+    """Create a function that copies another functions docs and signature"""
+    def _(func):
+        func.__doc__ = function.__doc__
+        func.__signature__ = inspect.signature(function)
+        return func
+    return _
 
 
 def safe_divide(numerator, denominator):
+    """Division by 0 returns 0"""
     return denominator and numerator/denominator
 
 
 def flatten(items, seqtypes=(list, tuple)):
+    """Turn nested lists into a single flat list"""
     for i, _ in enumerate(items):
         while i < len(items) and isinstance(items[i], seqtypes):
             items[i:i+1] = items[i]
@@ -81,12 +91,13 @@ def _f_6(l, lp, i2, i1, lam2, lam1):
 
 
 def _f_gen(l, lp, i2, i1, nu, lam2, lam1):
-    if(nu > l + lp or nu > lam1 + lam2 or (lam1 > 2*i1 and lam2 > 2*i2)):
-        return 0
-    return (sqrt(prod([2*i + 1 for i in locals().values()])) *
-            (-1)**(lp + lam1 + lam2 + 1) *
-            Wigner3j(l, 1, lp, -1, nu, 0) * 
-            Wigner9j(i2, l, i1, i2, lp, i1, lam2, nu, lam1))
+    return Piecewise(
+            (0, (nu > l + lp) | (nu > lam1 + lam2) | ( (lam1 > 2 * i2) & (lam2 > 2*i2) )),
+            ((
+                sqrt(prod([2*i + 1 for i in locals().values()])) *
+                (-1)**(lp + lam1 + lam2 + 1) *
+                Wigner3j(l, 1, lp, -1, nu, 0) * 
+                Wigner9j(i2, l, i1, i2, lp, i1, lam2, nu, lam1)), True))
 
 
 def u(lam1, l, lp, i2, i1, deltainter):
@@ -96,6 +107,7 @@ def u(lam1, l, lp, i2, i1, deltainter):
             ((1 + deltainter**2) * sqrt(2 * lam1 + 1)))
 
 
+@lru_cache(maxsize=None)
 def a(l, lp, i_n, i, delta, nu, lam2=None, lam1=None):
     if lam2 is None and lam1 is None:
         return ((f(l, l, i_n, i, nu) + 2 * delta * f(l, lp, i_n, i, nu) +
@@ -114,7 +126,7 @@ def b(l, lp, i_n, i, delta, nu):
 
 def bp(nu, theta, phi, sigma, l, sigmap, lp, i_n, i, delta):
     return (b(l, lp, i_n, i, delta, nu) * legendre(nu, cos(theta)) +
-            1/(1 + delta**2) * cos(2 * phi) * legenp(nu, 2, cos(theta)) *
+            1/(1 + delta**2) * cos(2 * phi) * assoc_legendre(nu, 2, cos(theta)) *
             (f(l, l, i_n, i, nu) * (-1)**sigma * kappa(nu, l, l) +
              (-1)**(l + lp) * 2 * delta * f(l, lp, i_n, i, nu) *
              (-1)**sigmap * kappa(nu, l, lp) +
@@ -122,69 +134,62 @@ def bp(nu, theta, phi, sigma, l, sigmap, lp, i_n, i, delta):
              (-1)**sigmap * kappa(nu, lp, lp)))
 
 
-@lru_cache(maxsize=None)
-def isst(nu, q, l, i_n, i, sigma):
-    if nu % 2:
-        return 0
-    elif q == 0:
-        return f(l, l, i_n, i, nu)
-    elif abs(q) == 2:
-        return (-1/2 * (-1)**sigma * f(l, l, i_n, i, nu) *
-                safe_divide(Wigner3j(l, 1, l, 1, nu, -2),
-                            Wigner3j(l, 1, l, -1, nu, 0)))
-    else:
-        return 0
-
-
-def _W(theta, phi,
-       i1, sigma, l1, sigmap, lp1, delta1,
-       intermediate_states, i_f):
+def _W(theta, phi, initial_state, cascade):
     """
-    Spin sequence is: i_i (sigma l1, sigmap lp1) i (l2, lp2) iintn (lint, lintp) i_f
-    
-    [i2, l2, lp2, delta2],
-    """
-    nu = Symbol('nu', integer=True)
-
-    # FIXME: Not yet tested
-    middle = 1
-    prev = [i1, l1, lp1, delta1]
-    for istate in intermediate_states[:-1]:
-        i, l, lp, delta = istate
-        middle *= u(2 * nu, l, lp, i, prev[0], delta)
-        prev = istate
-
-    i2, l2, lp2, delta2 = intermediate_states[-1]
-    return summation(
-        bp(2 * nu, theta, phi, sigma, l1, sigmap, lp1, i1,
-           intermediate_states[0][0], delta1) * middle *
-        a(l2, lp2, i_f, i2, delta2, 2 * nu), (nu, 0, 2))
-
-
-def W(*args, **kwargs):
-    """
-    Angular distribution for two successive γ-rays.
+    Angular distribution of γ-radiation emitted by an excited nucleus.
     The incident γ-ray is assumed to be polarized. For the calculation of
     unpolarized incident γ-rays, horizontal (φ = 0) and vertical (φ = π/2)
     polarizations must be added up.
 
-    Spin sequence is: i_i (sigma l1, sigmap lp1) i (l2, lp2) i_f
-    For the first gamma ray due to the polarization assumption the electric or
-    magnetic character of the radiation must be known.
-
-    sigma_i l_i is the multipole radiation of the transition mixing  with
-    sigma_i l_i' (e.g., M1/E2 mixing) with the multipole mixing ratio delta_i.
-
     Args:
         theta: angle to z-axis defined by first γ
         phi: angle rotating around z-axis
-        i_i: spin of initial state
-        i : spin of intermediate state
-        i_f: spin of final state.
-        sigma_i: electric (0) or magnetic (1) character of incident γ.
-        l_i: multipole order of the radiation
-        delta_i: multipole mixing ratio (convention of Krane/Steffen/Wheeler)
+        initial_state: state that is initially populated before excitation
+            (normally the ground state). Format is
+            [total angular momentum (J), parity (π)].
+        cascade: List of states that occur in the observed cascade. Format is
+            [[total angular momentum (J), parity (π),
+                multipole mixing ratio (δ)], ...]. For the multipole mixing ratio,
+            the convention by Krane/Steffen/Wheeler is used.
     """
+    # 0: initial state
+    # ex: excited state
+    # prev: previous state
+    # int: intermediate states
+    # final: final state
+    nu = Symbol('nu', integer=True)
+
+    I_0, π_0 = initial_state
+    I_ex, π_ex, δ_ex = cascade[0]
+    I_final, π_final, δ_final = cascade[-1]
+    
+    L_ex = max(abs(I_ex - I_0), 1)
+    L_exp = L_ex + 1
+    L_ex_sigma = (L_ex + π_0 + π_ex) % 2
+    L_exp_sigma = (L_exp + π_0 + π_ex) % 2
+
+    middle = 1
+    I_prev = I_ex
+    for state in cascade[1:-1]:
+        I_int, π_int, δ_int = state
+        L_int = max(abs(I_prev - I_int), 1)
+        L_intp = L_int + 1
+        
+        middle *= u(2 * nu, L_int, L_intp, I_int, I_prev, δ_int)
+        I_prev = I_int
+
+    L_final = max(abs(I_prev - I_final), 1)
+    L_finalp = L_final + 1
+    
+    return summation(
+        bp(2 * nu, theta, phi, L_ex_sigma, L_ex, L_exp_sigma, L_exp, I_0, I_ex, δ_ex) *
+        middle *
+        a(L_final, L_finalp, I_final, I_prev, δ_final, 2 * nu),
+        (nu, 0, 2))
+
+
+@wrap_function(_W)
+def W(*args, **kwargs):
     return _W(*args, **kwargs).doit().simplify()
 
 
