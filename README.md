@@ -2,7 +2,7 @@
 
 [![pipeline](https://gitlab.com/op3/angcorrwat/badges/master/pipeline.svg)](https://gitlab.com/op3/angcorrwat/commits/master)
 [![coverage](https://gitlab.com/op3/angcorrwat/badges/master/coverage.svg)](https://gitlab.com/op3/angcorrwat/commits/master)
-[![license](https://img.shields.io/badge/License-GPL%20v3+-blue.svg)](https://gitlab.com/op3/angcorrwat/blob/master/LICENSE)
+[![license](https://img.shields.io/badge/License-GPL%20v3+-blue.svg)](LICENSE)
 
 This python library can be used to calculate angular distributions.
 It is planned to add the calculation of angular correlations in the future.
@@ -20,7 +20,7 @@ theta = Symbol('theta')
 phi = Symbol('phi')
 delta = Symbol('delta')
 
-W(theta, phi, [0, 1], [[1, 0, 0], [0, 1, delta]])
+W(theta, phi, [0, 1], [1, 0, 0], [[0, delta]])
 ```
 
 The resulting angular distribution is normalized to 1, when integrated over the solid angle.
@@ -31,13 +31,10 @@ the polar angle ϑ is given with respect to the incident γ-ray.
 For the multipole mixing ratio δ, the convention by Krane, Steffen and Wheeler [\[2\]](#ref-2) is used.
 
 The arguments `theta` and `phi` refer to the respective spherical coordinates ϑ and φ.
-The third argument `[0, 1]` = `[J, π]` refers to the ground state J<sup>π</sup> 0<sup>+</sup> (0 is negative and 1 positive parity).
-Finally, a list of states `[[J, π, δ], …]` of the cascade is given, with `δ` refering to the multipole mixing ratio for the transition between the previous and current state.
+The third argument `[0, 1]` = `[J, π]` refers to the ground state J<sup>π</sup> = 0<sup>+</sup> (0 is negative and 1 positive parity).
+The fourth argument `[1, 0, 0]` = `[J, π, δ]` refers to the state excited by the γ-ray, with `δ` refering to the multipole mixing ratio for the transition between the initial and excited state.
+Finally, a list of states `[[J, δ], …]` of the subsequent cascade is given, with `δ` refering to the multipole mixing ratio for the transition between the previous and current state.
 The angular distribution of the final state in the cascade is returned.
-
-The API is still subject to change.
-For example, only the parity of initial state and excited state are of relevance, but at the moment the parities of all states have to be given, which is really pointless.
-
 
 ## License<a name="license"></a>
 

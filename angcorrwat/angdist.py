@@ -15,12 +15,11 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with pyangdist.  If not, see <http://www.gnu.org/licenses/>.
+# along with angcorrwat.  If not, see <http://www.gnu.org/licenses/>.
 
 """Calculate angular distributions"""
 
 from functools import lru_cache
-
 import inspect
 
 from sympy import sqrt, factorial, cos, Symbol, summation, Piecewise, pi, prod
@@ -134,7 +133,7 @@ def bp(nu, theta, phi, sigma, l, sigmap, lp, i_n, i, delta):
              (-1)**sigmap * kappa(nu, lp, lp)))
 
 
-def _W(theta, phi, initial_state, cascade):
+def _W(theta, phi, initial_state, excited_state, cascade):
     """
     Angular distribution of γ-radiation emitted by an excited nucleus.
     The incident γ-ray is assumed to be polarized. For the calculation of
@@ -147,10 +146,17 @@ def _W(theta, phi, initial_state, cascade):
         initial_state: state that is initially populated before excitation
             (normally the ground state). Format is
             [total angular momentum (J), parity (π)].
-        cascade: List of states that occur in the observed cascade. Format is
-            [[total angular momentum (J), parity (π),
-                multipole mixing ratio (δ)], ...]. For the multipole mixing ratio,
-            the convention by Krane/Steffen/Wheeler is used.
+        excited_state: state that is excited by the γ-ray. Format is
+            [total angular momentum (J), parity (π),
+                multipole mixing ratio (δ)].
+        cascade: List of states that occur in the subsequent cascade. Format is
+            [[total angular momentum (J), multipole mixing ratio (δ)], …].
+            For the multipole mixing ratio, the convention by
+            Krane/Steffen/Wheeler is used. Only the last state is observed.
+
+    Returns:
+        The angular distribution of the given cascade. Might still
+        depend on input variables.
     """
     # 0: initial state
     # ex: excited state
@@ -160,8 +166,8 @@ def _W(theta, phi, initial_state, cascade):
     nu = Symbol('nu', integer=True)
 
     I_0, π_0 = initial_state
-    I_ex, π_ex, δ_ex = cascade[0]
-    I_final, π_final, δ_final = cascade[-1]
+    I_ex, π_ex, δ_ex = excited_state
+    I_final, δ_final = cascade[-1]
     
     L_ex = max(abs(I_ex - I_0), 1)
     L_exp = L_ex + 1
@@ -170,8 +176,8 @@ def _W(theta, phi, initial_state, cascade):
 
     middle = 1
     I_prev = I_ex
-    for state in cascade[1:-1]:
-        I_int, π_int, δ_int = state
+    for state in cascade[:-1]:
+        I_int, δ_int = state
         L_int = max(abs(I_prev - I_int), 1)
         L_intp = L_int + 1
         
