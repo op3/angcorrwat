@@ -60,10 +60,9 @@ def kappa(nu, l, lp):
 def f(l, lp, i2, i1, e, f=None, g=None):
     if f is None:
         return _f_5(l, lp, i2, i1, e)
-    elif g is None:
+    if g is None:
         return _f_6(l, lp, i2, i1, e, f)
-    else:
-        return _f_gen(l, lp, i2, i1, e, f, g)
+    return _f_gen(l, lp, i2, i1, e, f, g)
 
 
 def _f_5(l, lp, i2, i1, nu):
@@ -91,12 +90,12 @@ def _f_6(l, lp, i2, i1, lam2, lam1):
 
 def _f_gen(l, lp, i2, i1, nu, lam2, lam1):
     return Piecewise(
-            (0, (nu > l + lp) | (nu > lam1 + lam2) | ( (lam1 > 2 * i2) & (lam2 > 2*i2) )),
-            ((
-                sqrt(prod([2*i + 1 for i in locals().values()])) *
-                (-1)**(lp + lam1 + lam2 + 1) *
-                Wigner3j(l, 1, lp, -1, nu, 0) * 
-                Wigner9j(i2, l, i1, i2, lp, i1, lam2, nu, lam1)), True))
+        (0, (nu > l + lp) | (nu > lam1 + lam2) | ((lam1 > 2 * i2) & (lam2 > 2*i2))),
+        ((
+            sqrt(prod([2*i + 1 for i in locals().values()])) *
+            (-1)**(lp + lam1 + lam2 + 1) *
+            Wigner3j(l, 1, lp, -1, nu, 0) *
+            Wigner9j(i2, l, i1, i2, lp, i1, lam2, nu, lam1)), True))
 
 
 def u(lam1, l, lp, i2, i1, deltainter):
@@ -165,32 +164,36 @@ def _W(theta, phi, initial_state, excited_state, cascade):
     # final: final state
     nu = Symbol('nu', integer=True)
 
-    I_0, π_0 = initial_state
-    I_ex, π_ex, δ_ex = excited_state
-    I_final, δ_final = cascade[-1]
-    
-    L_ex = max(abs(I_ex - I_0), 1)
-    L_exp = L_ex + 1
-    L_ex_sigma = (L_ex + π_0 + π_ex) % 2
-    L_exp_sigma = (L_exp + π_0 + π_ex) % 2
+    tot_ang_mom_0, parity_0 = initial_state
+    tot_ang_mom_ex, parity_ex, delta_ex = excited_state
+    tot_ang_mom_final, delta_final = cascade[-1]
+
+    orbit_ang_mom_ex = max(abs(tot_ang_mom_ex - tot_ang_mom_0), 1)
+    orbit_ang_mom_exp = orbit_ang_mom_ex + 1
+    orbit_ang_mom_ex_sigma = (orbit_ang_mom_ex + parity_0 + parity_ex) % 2
+    orbit_ang_mom_exp_sigma = (orbit_ang_mom_exp + parity_0 + parity_ex) % 2
 
     middle = 1
-    I_prev = I_ex
+    tot_ang_mom_prev = tot_ang_mom_ex
     for state in cascade[:-1]:
-        I_int, δ_int = state
-        L_int = max(abs(I_prev - I_int), 1)
-        L_intp = L_int + 1
-        
-        middle *= u(2 * nu, L_int, L_intp, I_int, I_prev, δ_int)
-        I_prev = I_int
+        tot_ang_mom_int, delta_int = state
+        orbit_ang_mom_int = max(abs(tot_ang_mom_prev - tot_ang_mom_int), 1)
+        orbit_ang_mom_intp = orbit_ang_mom_int + 1
 
-    L_final = max(abs(I_prev - I_final), 1)
-    L_finalp = L_final + 1
-    
+        middle *= u(2 * nu, orbit_ang_mom_int, orbit_ang_mom_intp,
+                    tot_ang_mom_int, tot_ang_mom_prev, delta_int)
+        tot_ang_mom_prev = tot_ang_mom_int
+
+    orbit_ang_mom_final = max(abs(tot_ang_mom_prev - tot_ang_mom_final), 1)
+    orbit_ang_mom_finalp = orbit_ang_mom_final + 1
+
     return summation(
-        bp(2 * nu, theta, phi, L_ex_sigma, L_ex, L_exp_sigma, L_exp, I_0, I_ex, δ_ex) *
+        bp(2 * nu, theta, phi, orbit_ang_mom_ex_sigma, orbit_ang_mom_ex,
+           orbit_ang_mom_exp_sigma, orbit_ang_mom_exp, tot_ang_mom_0,
+           tot_ang_mom_ex, delta_ex) *
         middle *
-        a(L_final, L_finalp, I_final, I_prev, δ_final, 2 * nu),
+        a(orbit_ang_mom_final, orbit_ang_mom_finalp, tot_ang_mom_final,
+          tot_ang_mom_prev, delta_final, 2 * nu),
         (nu, 0, 2))
 
 
