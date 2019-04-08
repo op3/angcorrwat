@@ -1,8 +1,7 @@
 # angcorrwat
 
-[![pipeline](https://gitlab.com/op3/angcorrwat/badges/master/pipeline.svg)](https://gitlab.com/op3/angcorrwat/commits/master)
-[![coverage](https://gitlab.com/op3/angcorrwat/badges/master/coverage.svg)](https://gitlab.com/op3/angcorrwat/commits/master)
-[![license](https://img.shields.io/badge/License-GPL%20v3+-blue.svg)](LICENSE)
+[![Build Status](https://travis-ci.com/op3/angcorrwat.svg?branch=master)](https://travis-ci.com/op3/angcorrwat)
+[![License](https://img.shields.io/badge/License-GPL%20v3+-blue.svg)](LICENSE)
 [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/op3/angcorrwat/master?filepath=doc%2Ftutorial.ipynb)
 
 This python library can be used to calculate angular distributions.
