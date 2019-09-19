@@ -4,9 +4,17 @@
 [![License](https://img.shields.io/badge/License-GPL%20v3+-blue.svg)](LICENSE)
 [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/op3/angcorrwat/master?filepath=doc%2Ftutorial.ipynb)
 
-This python library can be used to calculate angular distributions.
-It is planned to add the calculation of angular correlations in the future.
+This python library can be used to calculate angular distributions/correlations.
 
+
+## Dependencies
+
+To use the library, the following dependencies have to be fullfilled:
+
+- python≥3.6
+- sympy
+
+To run the tutorial notebook, matplotlib is required.
 
 ## Usage
 
@@ -31,8 +39,8 @@ the polar angle ϑ is given with respect to the incident γ-ray.
 For the multipole mixing ratio δ, the convention by Krane, Steffen and Wheeler [\[2\]](#ref-2) is used.
 
 The arguments `theta` and `phi` refer to the respective spherical coordinates ϑ and φ.
-The third argument `[0, 1]` = `[J, π]` refers to the ground state J<sup>π</sup> = 0<sup>+</sup> (0 is negative and 1 positive parity).
-The fourth argument `[1, 0, 0]` = `[J, π, δ]` refers to the state excited by the γ-ray, with `δ` refering to the multipole mixing ratio for the transition between the initial and excited state.
+The third argument `[0, 1]` = `[J, π]` refers to the initial state J<sup>π</sup> = 0<sup>+</sup> (0 is negative and 1 positive parity).
+The fourth argument `[1, 0, 0]` = `[J, π, δ]` refers to the state (de)excited by the first γ, with `δ` refering to the multipole mixing ratio for the transition between the initial and excited state.
 Finally, a list of states `[[J, δ], …]` of the subsequent cascade is given, with `δ` refering to the multipole mixing ratio for the transition between the previous and current state.
 The angular distribution of the final state in the cascade is returned.
 
