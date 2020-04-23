@@ -173,12 +173,14 @@ def _W(theta, phi, initial_state, excited_state, cascade):
     orbit_ang_mom_ex_sigma = (orbit_ang_mom_ex + parity_0 + parity_ex) % 2
     orbit_ang_mom_exp_sigma = (orbit_ang_mom_exp + parity_0 + parity_ex) % 2
 
+    nu_max = tot_ang_mom_ex
     middle = 1
     tot_ang_mom_prev = tot_ang_mom_ex
     for state in cascade[:-1]:
         tot_ang_mom_int, delta_int = state
         orbit_ang_mom_int = max(abs(tot_ang_mom_prev - tot_ang_mom_int), 1)
         orbit_ang_mom_intp = orbit_ang_mom_int + 1
+        nu_max = min([nu_max, orbit_ang_mom_intp])
 
         middle *= u(2 * nu, orbit_ang_mom_int, orbit_ang_mom_intp,
                     tot_ang_mom_int, tot_ang_mom_prev, delta_int)
@@ -186,6 +188,7 @@ def _W(theta, phi, initial_state, excited_state, cascade):
 
     orbit_ang_mom_final = max(abs(tot_ang_mom_prev - tot_ang_mom_final), 1)
     orbit_ang_mom_finalp = orbit_ang_mom_final + 1
+    nu_max = min([nu_max, orbit_ang_mom_finalp])
 
     return summation(
         bp(2 * nu, theta, phi, orbit_ang_mom_ex_sigma, orbit_ang_mom_ex,
@@ -194,7 +197,7 @@ def _W(theta, phi, initial_state, excited_state, cascade):
         middle *
         a(orbit_ang_mom_final, orbit_ang_mom_finalp, tot_ang_mom_final,
           tot_ang_mom_prev, delta_final, 2 * nu),
-        (nu, 0, 2))
+        (nu, 0, nu_max))
 
 
 @wrap_function(_W)

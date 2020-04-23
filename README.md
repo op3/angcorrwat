@@ -18,7 +18,7 @@ To run the tutorial notebook, matplotlib is required.
 
 ## Usage
 
-To calculate the ϑ-, φ- and δ-dependent angular distribution of a 0⁺ → 1⁻ → 0 cascade, use the following code:
+To calculate the ϑ-, φ- and δ-dependent angular correlation of a 0⁺ → 1⁻ → 0 cascade, use the following code:
 
 ```
 from sympy import Symbol
@@ -46,16 +46,25 @@ The angular distribution of the final state in the cascade is returned.
 
 For more examples, take a look at the [tutorial](doc/tutorial.ipynb) ([launch in binder](https://mybinder.org/v2/gh/op3/angcorrwat/master?filepath=doc%2Ftutorial.ipynb)).
 
+
 ## License<a name="license"></a>
 
-© 2018 O. Papst [`<opapst@ikp.tu-darmstadt.de>`](mailto:opapst@ikp.tu-darmstadt.de)
+© 2018– O. Papst [`<opapst@ikp.tu-darmstadt.de>`](mailto:opapst@ikp.tu-darmstadt.de)
 
 angcorrwat is distributed under the terms of the GNU General Public License, version 3 or later.
 See the [`LICENSE`](LICENSE) file.
 
+
+## Acknowledgements
+
+We thank U. Friman-Gayer and C. Iliadis for valuable discussions.
+This work has been funded by the State of Hesse under the grant “Nuclear Photonics” within the LOEWE program.
+O. Papst acknowledges support by the Helmholtz Graduate School for Hadron and Ion Research of the Helmholtz Association.
 
 ## References
 
 <a name="ref-1">[1]</a> R. M. Steffen *et al.*, “Angular distribution and correlation of gamma rays”, in *The electromagnetic interaction in nuclear spectroscopy*, edited by W. D. Hamilton (North-Holland, Amsterdam, 1975) Chap. 12, pp. 505–582, ISBN: 978-0-4441-0519-6.
 
 <a name="ref-2">[2]</a> K. S. Krane *et al.*, “Directional correlations of gamma radiations emitted from nuclear states oriented by nuclear reactions or cryogenic methods”, At. Data Nucl. Data Tables **11**, 351 (1973). [`doi:10.1016/S0092-640X(73)80016-6`](https://doi.org/10.1016/S0092-640X(73)80016-6).  
+
+<a name="ref-3">[3]</a> L. C. Biedenharn and M. E. Rose, “Theory of angular correlation of nuclear radiations”, Rev. Mod. Phys. **25**, 729 (1953). [`doi:10.1103/RevModPhys.25.729`](https://doi.org/10.1103/RevModPhys.25.729).
